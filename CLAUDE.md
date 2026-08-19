@@ -106,7 +106,14 @@ Each of these is duplicated somewhere by necessity, and nothing catches the omis
 
 ## Conventions
 
-PSR-12 via Pint (`pint.json`), `declare(strict_types=1)` in every file, PHPStan level 10.
+PSR-12 via Pint (`pint.json`), PHPStan level 10, and `declare(strict_types=1)` in every
+file under `src/`, `tests/` and `bin/`.
+
+Exercises are exempt, deliberately. `harness/output.php` carries no `declare`, because it
+has to match the shape the README documents — an ordinary PHP script with a docblock and
+nothing else. Adding ceremony there to satisfy a note here would make every exercise
+anyone writes pay for it. Pint does not enforce the declare either way, so this is a
+convention rather than a check.
 
 Public documents — README, CHANGELOG — state facts and never name a private application,
 an internal host, or an absolute path. Reasoning belongs in commit messages.
