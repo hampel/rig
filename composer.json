@@ -1,0 +1,57 @@
+{
+    "name": "hampel/rig",
+    "description": "Exercise a package by hand, for real - a harness for the things a test suite must not do",
+    "authors": [
+        {
+            "name": "Simon Hampel",
+            "email": "simon@hampelgroup.com",
+            "role": "Developer"
+        }
+    ],
+    "support": {
+        "issues": "https://github.com/hampel/rig/issues",
+        "source": "https://github.com/hampel/rig"
+    },
+    "keywords": [
+        "harness",
+        "exercise",
+        "development"
+    ],
+    "homepage": "https://github.com/hampel/rig",
+    "license": "MIT",
+    "require": {
+        "php": ">=8.3"
+    },
+    "require-dev": {
+        "laravel/pint": "^1.30",
+        "phpstan/phpstan": "^2.0",
+        "phpunit/phpunit": "^12.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Hampel\\Rig\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Hampel\\Rig\\Tests\\": "tests/"
+        }
+    },
+    "bin": [
+        "bin/rig"
+    ],
+    "config": {
+        "sort-packages": true
+    },
+    "scripts": {
+        "test": "phpunit",
+        "analyse": "phpstan analyse",
+        "format": "pint",
+        "lint": "pint --test",
+        "check": [
+            "@lint",
+            "@analyse",
+            "@test"
+        ]
+    }
+}

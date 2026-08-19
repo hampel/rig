@@ -1,0 +1,31 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+use Hampel\Rig\Io;
+use Hampel\Rig\Runner;
+
+/*
+ * Installed as a dev dependency this runs from vendor/bin, where the autoloader is three
+ * directories up. Run from a checkout of the rig itself it is alongside. A checkout with
+ * no vendor directory still has to work - the rig has no dependencies to install, so
+ * there may legitimately be nothing to autoload.
+ */
+foreach ([__DIR__ . '/../../../autoload.php', __DIR__ . '/../vendor/autoload.php'] as $autoload) {
+    if (is_file($autoload)) {
+        require $autoload;
+
+        break;
+    }
+}
+
+if (! class_exists(Runner::class)) {
+    require __DIR__ . '/../src/Arguments.php';
+    require __DIR__ . '/../src/Environment.php';
+    require __DIR__ . '/../src/Exercises.php';
+    require __DIR__ . '/../src/Io.php';
+    require __DIR__ . '/../src/Runner.php';
+}
+
+exit((new Runner(new Io(stream_isatty(STDOUT))))->run($argv));
