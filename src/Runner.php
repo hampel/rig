@@ -51,7 +51,7 @@ class Runner
 
         $this->root = rtrim($root, '/');
 
-        Environment::load($this->root . '/' . ($arguments->option('env') ?? '.env'));
+        Environment::load($this->environmentFile($arguments));
 
         $exercises = new Exercises($this->harnessDirectory($arguments));
         $name = $arguments->first();
@@ -154,6 +154,21 @@ class Runner
         require {$exercise};
 
         PHP;
+    }
+
+    /**
+     * An absolute --env is taken as given, the same way --harness is. Concatenating one
+     * onto the package produced a path that could not exist, and a missing environment
+     * file is not an error - so the exercise ran with none of its credentials set and
+     * nothing said why.
+     */
+    private function environmentFile(Arguments $arguments): string
+    {
+        $file = $arguments->option('env') ?? '.env';
+
+        return str_starts_with($file, '/')
+            ? $file
+            : $this->root . '/' . $file;
     }
 
     private function harnessDirectory(Arguments $arguments): string

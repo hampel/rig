@@ -145,4 +145,52 @@ class RunnerTest extends TestCase
         $this->assertSame(0, $this->rig('send', '--list', '--package=' . $this->root));
         $this->assertStringContainsString('send', $this->written());
     }
+
+    /**
+     * --env is read before anything is dispatched, so --list is enough to observe it.
+     * The variable is unset again either way: putenv outlives the test.
+     *
+     * @param  callable(string): void  $assertions
+     */
+    private function withEnvironmentFile(string $path, string $contents, callable $assertions): void
+    {
+        file_put_contents($path, $contents);
+
+        try {
+            $assertions($path);
+        } finally {
+            putenv('RIG_TEST_TOKEN');
+            unset($_ENV['RIG_TEST_TOKEN']);
+            unlink($path);
+        }
+    }
+
+    public function test_a_relative_env_file_is_read_from_the_package(): void
+    {
+        $this->withEnvironmentFile(
+            $this->root . '/.env',
+            "RIG_TEST_TOKEN=relative\n",
+            function (): void {
+                $this->assertSame(0, $this->rig('--list', '--package=' . $this->root));
+                $this->assertSame('relative', getenv('RIG_TEST_TOKEN'));
+            },
+        );
+    }
+
+    /**
+     * An absolute path used to be concatenated onto the package, producing a path that
+     * could not exist. A missing environment file is not an error, so the exercise ran
+     * with none of its credentials and nothing said why.
+     */
+    public function test_an_absolute_env_file_is_taken_as_given(): void
+    {
+        $this->withEnvironmentFile(
+            sys_get_temp_dir() . '/rig-env-' . bin2hex(random_bytes(6)),
+            "RIG_TEST_TOKEN=absolute\n",
+            function (string $path): void {
+                $this->assertSame(0, $this->rig('--list', '--package=' . $this->root, '--env=' . $path));
+                $this->assertSame('absolute', getenv('RIG_TEST_TOKEN'));
+            },
+        );
+    }
 }

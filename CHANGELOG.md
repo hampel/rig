@@ -1,6 +1,22 @@
 CHANGELOG
 =========
 
+0.1.1 (unreleased)
+------------------
+
+**Fixed**
+
+* `--env=<file>` given an absolute path was concatenated onto the package, so the file was
+  never found. A missing environment file is not an error, so the exercise ran with none of
+  its credentials set and nothing said why. An absolute path is now taken as given, the
+  same way `--harness` already treated one
+
+**Documentation**
+
+* the recommended `.gitignore` block for a package with a harness now covers `.env.*` as
+  well as `.env`, keeping `.env.example`, because `--env=` invites variants such as
+  `.env.staging` that the previous advice left tracked
+
 0.1.0 (2026-08-19)
 ------------------
 

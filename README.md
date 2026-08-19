@@ -68,7 +68,7 @@ is autoloaded, so use it however a consumer would.
 | `--php=<binary>` | run the exercise on another PHP binary |
 | `--package=<path>` | exercise a package in another directory |
 | `--harness=<dir>` | where the exercises are; default `harness` |
-| `--env=<file>` | environment file to load; default `.env` |
+| `--env=<file>` | environment file to load; default `.env`, relative to the package unless absolute |
 | `--list` | list exercises even when one is named |
 | `--version`, `--help` | |
 
