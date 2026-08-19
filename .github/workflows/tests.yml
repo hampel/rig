@@ -39,7 +39,7 @@ jobs:
       # later patch of a dependency than its own constraint claims; this package
       # requires php and nothing else, so there is nothing to resolve downwards.
       # Add the corner the day that stops being true.
-      - run: composer install --prefer-dist --no-progress
+      - run: composer update --prefer-dist --no-progress
 
       - run: vendor/bin/phpunit
 
@@ -71,7 +71,7 @@ jobs:
 
       - run: composer validate --strict
 
-      - run: composer install --prefer-dist --no-progress
+      - run: composer update --prefer-dist --no-progress
 
       - run: vendor/bin/pint --test
 
