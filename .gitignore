@@ -1,8 +1,16 @@
 /vendor
-.env
 composer.phar
 composer.lock
 .DS_Store
 .idea/
 .phpunit.cache/
 CLAUDE.local.md
+
+# Secrets. Deliberately not anchored with a leading slash: that would cover the repository
+# root only, and --env=<file> resolves relative to the package, so an environment file can
+# legitimately sit in a subdirectory. This holds while environment files are named .env or
+# .env.<something> - --env= will load any file you point it at, and one named otherwise is
+# not covered here.
+.env
+.env.*
+!.env.example

@@ -88,10 +88,25 @@ editing it:
 WEBHOOK_URL=https://example.test/other vendor/bin/rig post
 ```
 
-**Add `.env` to `.gitignore` when you add `harness/`**, whether or not anything needs
+**Ignore environment files when you add `harness/`**, whether or not anything needs
 credentials yet. A harness that starts out driving pure code grows an API call eventually,
 and by then the file is already tracked — the leak happens at the commit that adds the
-first real value, not at the one that adds the rule.
+first real value, not at the one that adds the rule. In `.gitignore`:
+
+```
+.env
+.env.*
+!.env.example
+```
+
+None of those are anchored with a leading `/`, on purpose: that would cover the repository
+root only, and `--env=` resolves relative to the package, so an environment file can
+legitimately sit in a subdirectory. `.env.*` catches the variants the option invites —
+`.env.staging`, `.env.local` — and the last line keeps a committed `.env.example`
+documenting which variables an exercise expects.
+
+This holds while environment files are named `.env` or `.env.<something>`. `--env=` will
+load any file you point it at, and one named otherwise is not covered.
 
 The parser is deliberately minimal — `KEY=VALUE`, `#` comments, optional surrounding
 quotes, nothing else. An exercise is ordinary PHP and can read configuration however it
@@ -106,8 +121,9 @@ Exercises belong in the repository and not in the tarball your consumers install
 /harness export-ignore
 ```
 
-Two lines of repository metadata, then — this one, and `.env` in `.gitignore`. Add both
-when you create `harness/`, so neither is waiting on the day it turns out to matter.
+Two pieces of repository metadata, then — this one, and the environment-file block in
+`.gitignore`. Add both when you create `harness/`, so neither is waiting on the day it
+turns out to matter.
 
 ## Why a fresh process by default
 
