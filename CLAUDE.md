@@ -82,10 +82,16 @@ tested directly. `Io` is tested by handing it a `php://memory` stream — which 
 constructor takes one; `phpunit.xml` sets
 `beStrictAboutOutputDuringTests`, and writing to `STDOUT` would bypass it.
 
-`Runner` has no direct tests: it is orchestration over the four, and its two interesting
-behaviours (a real subprocess, a real `require`) are exactly what a test cannot honestly
-fake. `harness/output.php` covers what a test could not tell you anyway — whether the
-output reads well.
+`Runner` is tested for dispatch only: the version, the usage text, the empty-harness
+message, the listing, and the unknown-exercise error — every path that returns before
+anything is started. `runIsolated()` and `runHere()` have no tests on purpose, because a
+real subprocess and a real `require` are what a test can only fake dishonestly, and a
+faked one asserts that the mock works. `RunnerTest` necessarily drives the other four
+classes, so it declares them with `#[UsesClass]`; without that,
+`beStrictAboutCoverageMetadata` makes every one of its tests risky under coverage.
+
+`harness/output.php` covers what a test could not tell you anyway — whether the output
+reads well.
 
 ## Things that have to move together
 
