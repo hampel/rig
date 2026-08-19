@@ -34,6 +34,11 @@ jobs:
           extensions: ""
           coverage: none
 
+      # No --prefer-lowest corner here, which is a decision rather than an
+      # oversight. That job exists to catch a package using an API added in a
+      # later patch of a dependency than its own constraint claims; this package
+      # requires php and nothing else, so there is nothing to resolve downwards.
+      # Add the corner the day that stops being true.
       - run: composer install --prefer-dist --no-progress
 
       - run: vendor/bin/phpunit
