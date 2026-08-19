@@ -28,7 +28,7 @@ $io->value('float', 1.5);
 $io->value('bool', true);
 $io->value('null', null);
 $io->value('array', ['a' => 1, 'b' => [2, 3]]);
-$io->value('object', new Io);
+$io->value('object', new Io());
 
 $io->line();
 $io->info('  attempt - the outcome of doing something real');
