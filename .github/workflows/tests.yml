@@ -34,14 +34,37 @@ jobs:
           extensions: ""
           coverage: none
 
-      # No --prefer-lowest corner here, which is a decision rather than an
-      # oversight. That job exists to catch a package using an API added in a
-      # later patch of a dependency than its own constraint claims; this package
-      # requires php and nothing else, so there is nothing to resolve downwards.
-      # Add the corner the day that stops being true.
       - run: composer update --prefer-dist --no-progress
 
       - run: vendor/bin/phpunit
+
+  # The only job that ever resolves the dev toolchain downwards. Nothing else
+  # does: everywhere else takes the newest release, so a require-dev constraint
+  # wide enough to admit a version that cannot run this package's own config is
+  # never exercised. That is not hypothetical here - phpstan.neon sets
+  # phpVersion.max to 80500, which PHPStan rejected before 2.1.22, and the
+  # constraint said ^2.0.
+  #
+  # Pint is deliberately not run here. Its rule set moves between patches, so
+  # the oldest Pint rejects code the newest accepts - churn, not a defect.
+  lowest:
+    name: PHP 8.3, lowest dependencies
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
+        with:
+          php-version: '8.3'
+          extensions: ""
+          coverage: none
+
+      - run: composer update --prefer-lowest --prefer-dist --no-progress
+
+      - run: vendor/bin/phpunit
+
+      - run: vendor/bin/phpstan analyse --no-progress
 
   analyse:
     name: Static analysis
