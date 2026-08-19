@@ -1,5 +1,9 @@
 # rig
 
+[![Tests](https://github.com/hampel/rig/actions/workflows/tests.yml/badge.svg)](https://github.com/hampel/rig/actions/workflows/tests.yml)
+[![Latest Version on Packagist](https://img.shields.io/packagist/v/hampel/rig.svg?style=flat-square)](https://packagist.org/packages/hampel/rig)
+[![Total Downloads](https://img.shields.io/packagist/dt/hampel/rig.svg?style=flat-square)](https://packagist.org/packages/hampel/rig)
+
 Exercise a package by hand, for real.
 
 A rig is a small harness you install into a package under development so you can drive its
