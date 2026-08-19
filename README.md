@@ -88,7 +88,10 @@ editing it:
 WEBHOOK_URL=https://example.test/other vendor/bin/rig post
 ```
 
-**Add `.env` to `.gitignore`.** It will hold live secrets in a repository you publish.
+**Add `.env` to `.gitignore` when you add `harness/`**, whether or not anything needs
+credentials yet. A harness that starts out driving pure code grows an API call eventually,
+and by then the file is already tracked — the leak happens at the commit that adds the
+first real value, not at the one that adds the rule.
 
 The parser is deliberately minimal — `KEY=VALUE`, `#` comments, optional surrounding
 quotes, nothing else. An exercise is ordinary PHP and can read configuration however it
@@ -102,6 +105,9 @@ Exercises belong in the repository and not in the tarball your consumers install
 ```
 /harness export-ignore
 ```
+
+Two lines of repository metadata, then — this one, and `.env` in `.gitignore`. Add both
+when you create `harness/`, so neither is waiting on the day it turns out to matter.
 
 ## Why a fresh process by default
 
