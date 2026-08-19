@@ -207,7 +207,9 @@ class Runner
         $this->io->line('  --package=<path>              exercise a package somewhere else');
         $this->io->line('  --harness=<dir>               where the exercises are (default: harness)');
         $this->io->line('  --env=<file>                  environment file (default: .env)');
+        $this->io->line('  --list                        list the exercises even when one is named');
         $this->io->line('  --version                     print the version');
+        $this->io->line('  --help                        print this');
 
         return 0;
     }

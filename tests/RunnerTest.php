@@ -84,10 +84,22 @@ class RunnerTest extends TestCase
         $this->assertStringContainsString(Runner::VERSION, $this->written());
     }
 
-    public function test_it_prints_usage(): void
+    /**
+     * Once installed, usage is the only place an option can be discovered - the README is
+     * a click away rather than a command away - so an option the code honours and the
+     * usage text omits may as well not exist.
+     */
+    public function test_usage_lists_every_option_the_runner_honours(): void
     {
         $this->assertSame(0, $this->rig('--help'));
-        $this->assertStringContainsString('vendor/bin/rig', $this->written());
+
+        $output = $this->written();
+
+        $this->assertStringContainsString('vendor/bin/rig', $output);
+
+        foreach (['--in-process', '--php', '--package', '--harness', '--env', '--list', '--version', '--help'] as $option) {
+            $this->assertStringContainsString($option, $output);
+        }
     }
 
     public function test_an_empty_harness_says_so_rather_than_nothing(): void
