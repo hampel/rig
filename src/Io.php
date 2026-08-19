@@ -20,6 +20,15 @@ use Throwable;
  */
 class Io
 {
+    /**
+     * Where an inline array stops. Deep enough to see the shape of a nested response,
+     * shallow enough that the line stays a line - and it is what terminates a recursive
+     * array, which needs no separate guard.
+     */
+    private const MAX_DEPTH = 3;
+
+    private const MAX_ITEMS = 10;
+
     /** @var resource */
     private $stream;
 
@@ -108,9 +117,48 @@ class Io
             is_bool($value) => $value ? 'true' : 'false',
             $value === null => 'null',
             is_scalar($value) => (string) $value,
-            is_object($value) && ! method_exists($value, '__toString') => $value::class,
-            default => trim(print_r($value, true)),
+            is_array($value) => $this->inline($value),
+            is_object($value) => method_exists($value, '__toString')
+                ? $value::class . "('" . $value . "')"
+                : $value::class,
+            default => get_debug_type($value),
         };
+    }
+
+    /**
+     * An array on one line, in the syntax you would have written it in.
+     *
+     * value() aligns a label column, and anything multi-line breaks it - which is what
+     * print_r did here. Depth and length are capped so that an exercise returning a large
+     * API response still prints something a person can read; strings are not truncated,
+     * because the payload is usually the thing you came to look at.
+     *
+     * @param  array<array-key, mixed>  $value
+     */
+    private function inline(array $value, int $depth = 0): string
+    {
+        if ($value === []) {
+            return '[]';
+        }
+
+        if ($depth >= self::MAX_DEPTH) {
+            return '[…]';
+        }
+
+        $list = array_is_list($value);
+        $parts = [];
+
+        foreach (array_slice($value, 0, self::MAX_ITEMS, true) as $key => $item) {
+            $rendered = is_array($item) ? $this->inline($item, $depth + 1) : $this->stringify($item);
+
+            $parts[] = $list ? $rendered : $this->stringify($key) . ' => ' . $rendered;
+        }
+
+        if (count($value) > self::MAX_ITEMS) {
+            $parts[] = '… +' . (count($value) - self::MAX_ITEMS) . ' more';
+        }
+
+        return '[' . implode(', ', $parts) . ']';
     }
 
     private function style(string $text, string $code): string

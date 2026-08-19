@@ -12,6 +12,19 @@
 
 use Hampel\Rig\Io;
 
+/** A value object of the shape a package returns, to show how one renders. */
+class Money
+{
+    public function __construct(private string $amount)
+    {
+    }
+
+    public function __toString(): string
+    {
+        return $this->amount;
+    }
+}
+
 $io->title('rig · output');
 
 $io->info('  info - context, not an outcome');
@@ -28,7 +41,12 @@ $io->value('float', 1.5);
 $io->value('bool', true);
 $io->value('null', null);
 $io->value('array', ['a' => 1, 'b' => [2, 3]]);
+$io->value('list', [2, 3]);
+$io->value('empty', []);
+$io->value('deep', ['a' => ['b' => ['c' => ['d' => 'past the cap']]]]);
+$io->value('long', range(1, 14));
 $io->value('object', new Io());
+$io->value('stringable', new Money('$5.00'));
 
 $io->line();
 $io->info('  attempt - the outcome of doing something real');
