@@ -51,6 +51,19 @@ jobs:
           extensions: ""
           coverage: none
 
+      # bin/rig must stay executable: README and CLAUDE.md both document running
+      # ./bin/rig from a clone. A commit made through a client that cannot see
+      # the Linux permission bit silently clears it, and nothing notices until
+      # someone tries to run it. Checked against the index rather than the
+      # working tree, because the index is what a fresh clone gets.
+      - name: bin/rig is executable
+        run: |
+          if ! git ls-files -s bin/rig | grep -q '^100755'; then
+            echo 'bin/rig has lost its executable bit.'
+            echo 'Restore it with: git update-index --chmod=+x bin/rig'
+            exit 1
+          fi
+
       - run: composer validate --strict
 
       - run: composer install --prefer-dist --no-progress
