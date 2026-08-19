@@ -76,9 +76,10 @@ package failing loudly instead of resolving against something the rig brought.
 
 ## Testing
 
-PHPUnit, `tests/`, namespace `Hampel\Rig\Tests\`. `Arguments`, `Environment` and
-`Exercises` are pure and are tested directly. `Io` is tested by handing it a
-`php://memory` stream — which is why the constructor takes one; `phpunit.xml` sets
+PHPUnit, `tests/`, namespace `Hampel\Rig\Tests\`, one `#[CoversClass]` per test class and
+snake_case `test_` methods. `Arguments`, `Environment` and `Exercises` are pure and are
+tested directly. `Io` is tested by handing it a `php://memory` stream — which is why the
+constructor takes one; `phpunit.xml` sets
 `beStrictAboutOutputDuringTests`, and writing to `STDOUT` would bypass it.
 
 `Runner` has no direct tests: it is orchestration over the four, and its two interesting
@@ -86,10 +87,29 @@ behaviours (a real subprocess, a real `require`) are exactly what a test cannot 
 fake. `harness/output.php` covers what a test could not tell you anyway — whether the
 output reads well.
 
+## Things that have to move together
+
+Each of these is duplicated somewhere by necessity, and nothing catches the omission:
+
+| changing | also change |
+|---|---|
+| the `php` constraint in `composer.json` | `phpVersion` min/max in `phpstan.neon`, and the `php` matrix in `.github/workflows/tests.yml` |
+| adding a class to `src/` | the `require` fallback list in `bin/rig`, which loads all five by hand when nothing autoloaded them — a checkout with no vendor directory, since a package with no dependencies may legitimately have none |
+| adding a dev-only file at the top level | `.gitattributes`, so it stays out of the dist archive |
+| releasing | `Runner::VERSION`, which `--version` and the help title print, and `CHANGELOG.md` |
+
 ## Conventions
 
-PSR-12 via Pint (`pint.json`), `declare(strict_types=1)` in every file, PHPStan level 10
-with the `phpVersion` range in `phpstan.neon` kept in step with the `php` constraint.
+PSR-12 via Pint (`pint.json`), `declare(strict_types=1)` in every file, PHPStan level 10.
 
 Public documents — README, CHANGELOG — state facts and never name a private application,
 an internal host, or an absolute path. Reasoning belongs in commit messages.
+
+## HANDOVER.md
+
+Committed, export-ignored, and to be deleted once it stops being true. It holds what this
+file deliberately does not: where the design came from and what was measured to get there,
+what has been verified end to end, the known rough edges, and the decisions left open —
+including that `RIG_HARNESS` is an undocumented environment fallback for `--harness`,
+awaiting a decision on whether it earns its place. Read it before adding a feature; the
+reason something is missing is usually in there.
