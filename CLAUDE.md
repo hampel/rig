@@ -105,11 +105,8 @@ PSR-12 via Pint (`pint.json`), `declare(strict_types=1)` in every file, PHPStan 
 Public documents — README, CHANGELOG — state facts and never name a private application,
 an internal host, or an absolute path. Reasoning belongs in commit messages.
 
-## HANDOVER.md
+## Deliberately undocumented
 
-Committed, export-ignored, and to be deleted once it stops being true. It holds what this
-file deliberately does not: where the design came from and what was measured to get there,
-what has been verified end to end, the known rough edges, and the decisions left open —
-including that `RIG_HARNESS` is an undocumented environment fallback for `--harness`,
-awaiting a decision on whether it earns its place. Read it before adding a feature; the
-reason something is missing is usually in there.
+`Runner::harnessDirectory()` reads `RIG_HARNESS` as an environment fallback for `--harness`.
+It is left out of the README on purpose, pending a decision on whether it earns its place.
+Do not document it without asking, and do not remove it either.
