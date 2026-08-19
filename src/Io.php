@@ -29,6 +29,9 @@ class Io
 
     private const MAX_ITEMS = 10;
 
+    /** The label column value() aligns to. */
+    private const LABEL_WIDTH = 14;
+
     /** @var resource */
     private $stream;
 
@@ -84,10 +87,19 @@ class Io
 
     /**
      * A label and a value, aligned - the shape most exercise output takes.
+     *
+     * Exactly one line, whatever the value is. str_pad pads *to* a width, so a label of
+     * 14 characters or more used to run straight into its value with no separator at
+     * all; a label short enough to be padded is untouched, which keeps every existing
+     * exercise's output identical.
      */
     public function value(string $label, mixed $value): void
     {
-        $this->line('  ' . str_pad($label, 14) . $this->style($this->stringify($value), '1'));
+        $label = strlen($label) >= self::LABEL_WIDTH
+            ? $label . ' '
+            : str_pad($label, self::LABEL_WIDTH);
+
+        $this->line('  ' . $label . $this->style($this->stringify($value), '1'));
     }
 
     /**
@@ -110,19 +122,43 @@ class Io
         }
     }
 
+    /**
+     * A value on one line, in the syntax you would have written it in.
+     *
+     * Never returns a newline. value() aligns a label column and anything multi-line
+     * destroys it, so a line break inside a string is shown escaped rather than dropped
+     * - what you are looking at is still the whole value. A backslash is left as it is:
+     * exercises print class names constantly, and 'Hampel\Rig\Io' reads better than the
+     * ambiguity costs.
+     */
     public function stringify(mixed $value): string
     {
         return match (true) {
-            is_string($value) => "'" . $value . "'",
+            is_string($value) => $this->quote($value),
             is_bool($value) => $value ? 'true' : 'false',
             $value === null => 'null',
             is_scalar($value) => (string) $value,
             is_array($value) => $this->inline($value),
+            /*
+             * Ahead of the __toString() branch, because a throwable's is its message,
+             * file, line and the entire stack trace - pages of it, in the value column.
+             * Rendered the way attempt() already renders one.
+             */
+            $value instanceof Throwable => $value::class . '(' . $this->quote($value->getMessage()) . ')',
             is_object($value) => method_exists($value, '__toString')
-                ? $value::class . "('" . $value . "')"
+                ? $value::class . '(' . $this->quote((string) $value) . ')'
                 : $value::class,
             default => get_debug_type($value),
         };
+    }
+
+    /**
+     * A string as a quoted literal, with the characters that would break the line shown
+     * as escapes.
+     */
+    private function quote(string $value): string
+    {
+        return "'" . strtr($value, ["\n" => '\n', "\r" => '\r', "\t" => '\t']) . "'";
     }
 
     /**

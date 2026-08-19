@@ -47,6 +47,9 @@ $io->value('deep', ['a' => ['b' => ['c' => ['d' => 'past the cap']]]]);
 $io->value('long', range(1, 14));
 $io->value('object', new Io());
 $io->value('stringable', new Money('$5.00'));
+$io->value('throwable', new RuntimeException('by class and message, not a stack trace'));
+$io->value('multiline', "a line break\nshown as an escape, so the column survives");
+$io->value('a_label_that_fills_the_column', 'still separated from its value');
 
 $io->line();
 $io->info('  attempt - the outcome of doing something real');

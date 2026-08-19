@@ -63,6 +63,13 @@ Five classes, each doing one thing:
 running somewhere the package has never heard of, so it must stay a single file with no
 imports beyond `Throwable`.
 
+**`stringify()` returns exactly one line, for every value it is given.** `value()` aligns a
+label column and anything multi-line destroys it — not just the value's own line, but the
+readability of everything printed after it. The array renderer was written for this reason;
+the object branch then reintroduced it for throwables, whose `__toString()` is a whole stack
+trace, and a multi-line string went the same way. Any new branch in `stringify()` inherits
+the rule, and `test_no_value_ever_returns_a_newline` is what holds it.
+
 ### Why a subprocess by default
 
 Not speed. A fatal in an exercise cannot take the rig with it, the exit status is the

@@ -144,4 +144,71 @@ class IoTest extends TestCase
             }
         }));
     }
+
+    /**
+     * A throwable's __toString() is its message, file, line and the whole stack trace,
+     * which in an aligned column buries every line after it. An exercise that shows what
+     * a package throws is the most ordinary thing there is to write here.
+     */
+    public function test_it_renders_a_throwable_by_class_and_message(): void
+    {
+        $this->assertSame(
+            "RuntimeException('the cause')",
+            $this->io()->stringify(new \RuntimeException('the cause')),
+        );
+    }
+
+    /**
+     * The invariant value() depends on, asserted for every kind of value that can carry a
+     * newline rather than for arrays alone.
+     */
+    public function test_no_value_ever_returns_a_newline(): void
+    {
+        $io = $this->io();
+
+        $values = [
+            "first\nsecond",
+            new \RuntimeException("a message\nover two lines"),
+            new class () {
+                public function __toString(): string
+                {
+                    return "line\nbreak";
+                }
+            },
+            ['key' => "value\nhere"],
+        ];
+
+        foreach ($values as $value) {
+            $this->assertStringNotContainsString("\n", $io->stringify($value));
+        }
+    }
+
+    public function test_it_shows_a_line_break_as_an_escape_rather_than_dropping_it(): void
+    {
+        $io = $this->io();
+
+        $this->assertSame("'first\\nsecond'", $io->stringify("first\nsecond"));
+        $this->assertSame("'a\\tb'", $io->stringify("a\tb"));
+        $this->assertSame("'Hampel\\Rig\\Io'", $io->stringify('Hampel\Rig\Io'));
+    }
+
+    /**
+     * str_pad pads *to* a width, so a label that fills the column got no separator at all
+     * and ran straight into its value. A shorter label keeps the output it always had.
+     */
+    public function test_a_label_that_fills_the_column_still_has_a_separator(): void
+    {
+        $io = $this->io();
+
+        $io->value('short', 'value');
+        $io->value('exactly14chars', 'value');
+        $io->value('json_last_error', 'value');
+
+        $this->assertSame(
+            "  short         'value'" . PHP_EOL
+            . "  exactly14chars 'value'" . PHP_EOL
+            . "  json_last_error 'value'" . PHP_EOL,
+            $this->written(),
+        );
+    }
 }

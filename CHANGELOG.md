@@ -1,6 +1,19 @@
 CHANGELOG
 =========
 
+0.1.2 (unreleased)
+------------------
+
+**Fixed**
+
+* `Io::stringify()` given a `Throwable` rendered its `__toString()` — message, file, line
+  and the full stack trace — into `value()`'s aligned column. It now renders the class and
+  the message, the way `attempt()` does
+* `Io::stringify()` returns a single line for every value. A line break, carriage return or
+  tab in a string, in a `Stringable`, or in a throwable's message is shown as an escape
+* `Io::value()` given a label of 14 characters or more emitted no separator between the
+  label and the value. Shorter labels are padded as before
+
 0.1.1 (2026-08-19)
 ------------------
 
