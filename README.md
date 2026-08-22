@@ -16,6 +16,23 @@ unattended, and reports a verdict — so it must not touch anything real. A rig 
 opposite: it does the real thing and shows you the result, and you decide what it means.
 Both are worth having, and neither substitutes for the other.
 
+## Why you might want one
+
+The sharpest case is a package that wraps somebody else's API. It is a pile of assumptions —
+endpoint paths, required fields, response shapes, what an error looks like — every one of them
+true on the day it was written. Then the remote API moves, nothing local changes, and the
+package is quietly wrong.
+
+A test suite cannot find that, and a green one is what keeps it invisible: the tests pass
+because they mock the HTTP client, so the mock encodes exactly the same assumption the code
+does. Both sides stay agreed with each other and disagreed with reality. Static analysis is no
+better — a path spelled `custom_fields/` where the vendor now documents `custom_field/` is not a
+type error, it is a claim about a system PHPStan cannot see. Only a real call settles it, and
+the answer often is not an exception but a number that looks slightly off: a filter the API has
+quietly stopped honouring returns `200 OK` and every record in the account. You cannot assert
+your way to *is this count suspiciously equal to that one* without already knowing the answer
+you are looking for. A person reading two numbers can.
+
 ## Install
 
 ```bash
