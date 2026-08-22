@@ -16,7 +16,7 @@ use Throwable;
  */
 class Runner
 {
-    public const VERSION = '0.1.2';
+    public const VERSION = '0.2.0';
 
     private string $root;
 

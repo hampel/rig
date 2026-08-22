@@ -1,6 +1,23 @@
 CHANGELOG
 =========
 
+0.2.0 (2026-08-22)
+------------------
+
+**Changed**
+
+* the environment file is no longer loaded when `CLAUDECODE` is set — the variable Claude
+  Code exports into every shell it opens. The file is written by whoever owns the
+  credentials in it and generally authorises the real effect, because that is how they run
+  their own exercises; an agent inherits that authorisation without having made the
+  decision. The exercise still runs, on whatever defaults its own code chooses. With the
+  variable absent nothing changes
+
+**Added**
+
+* `--agent-may-load-env`, which loads the file regardless, for an agent that has been asked
+  to do the real thing
+
 0.1.2 (2026-08-20)
 ------------------
 
