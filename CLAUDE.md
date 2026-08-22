@@ -70,6 +70,23 @@ the object branch then reintroduced it for throwables, whose `__toString()` is a
 trace, and a multi-line string went the same way. Any new branch in `stringify()` inherits
 the rule, and `test_no_value_ever_returns_a_newline` is what holds it.
 
+### Why the environment file is withheld from an agent
+
+`Runner::loadEnvironment()` skips the file entirely when `CLAUDECODE` is set, unless
+`--agent-may-load-env` says otherwise. The file is written by the person who owns the
+credentials and generally authorises the real effect, because that is how they run their
+exercises; an agent inherits that authorisation without having made it. Withholding the
+file is what lets an exercise's own safe default apply — a safe default is worth nothing
+against a populated file that overrides it.
+
+The check fails open on absence: no variable means ordinary behaviour, never "assume
+human, proceed", so a rename upstream costs the guard rather than the safety. It covers
+the file the rig loads and nothing else, which is why it is a layer rather than a
+guarantee.
+
+`RunnerTest` pins `CLAUDECODE` around every environment test. Without that the suite
+passes when a person runs it and fails when an agent does, on identical code.
+
 ### Why a subprocess by default
 
 Not speed. A fatal in an exercise cannot take the rig with it, the exit status is the

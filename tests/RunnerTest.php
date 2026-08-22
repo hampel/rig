@@ -97,7 +97,10 @@ class RunnerTest extends TestCase
 
         $this->assertStringContainsString('vendor/bin/rig', $output);
 
-        foreach (['--in-process', '--php', '--package', '--harness', '--env', '--list', '--version', '--help'] as $option) {
+        $options = ['--in-process', '--php', '--package', '--harness', '--env',
+            '--agent-may-load-env', '--list', '--version', '--help'];
+
+        foreach ($options as $option) {
             $this->assertStringContainsString($option, $output);
         }
     }
@@ -147,6 +150,26 @@ class RunnerTest extends TestCase
     }
 
     /**
+     * CLAUDECODE decides whether the environment file is loaded at all, and Claude Code
+     * sets it in every shell it opens - so a suite that did not pin it would pass when a
+     * person ran it and fail when an agent did, on identical code.
+     *
+     * @param  callable(): void  $assertions
+     */
+    private function withSession(?string $agent, callable $assertions): void
+    {
+        $restore = getenv('CLAUDECODE');
+
+        $agent === null ? putenv('CLAUDECODE') : putenv('CLAUDECODE=' . $agent);
+
+        try {
+            $assertions();
+        } finally {
+            $restore === false ? putenv('CLAUDECODE') : putenv('CLAUDECODE=' . $restore);
+        }
+    }
+
+    /**
      * --env is read before anything is dispatched, so --list is enough to observe it.
      * The variable is unset again either way: putenv outlives the test.
      *
@@ -167,14 +190,14 @@ class RunnerTest extends TestCase
 
     public function test_a_relative_env_file_is_read_from_the_package(): void
     {
-        $this->withEnvironmentFile(
+        $this->withSession(null, fn () => $this->withEnvironmentFile(
             $this->root . '/.env',
             "RIG_TEST_TOKEN=relative\n",
             function (): void {
                 $this->assertSame(0, $this->rig('--list', '--package=' . $this->root));
                 $this->assertSame('relative', getenv('RIG_TEST_TOKEN'));
             },
-        );
+        ));
     }
 
     /**
@@ -184,13 +207,55 @@ class RunnerTest extends TestCase
      */
     public function test_an_absolute_env_file_is_taken_as_given(): void
     {
-        $this->withEnvironmentFile(
+        $this->withSession(null, fn () => $this->withEnvironmentFile(
             sys_get_temp_dir() . '/rig-env-' . bin2hex(random_bytes(6)),
             "RIG_TEST_TOKEN=absolute\n",
             function (string $path): void {
                 $this->assertSame(0, $this->rig('--list', '--package=' . $this->root, '--env=' . $path));
                 $this->assertSame('absolute', getenv('RIG_TEST_TOKEN'));
             },
-        );
+        ));
+    }
+
+    /**
+     * The file belongs to whoever owns the credentials in it, and it says deliver because
+     * that is how they run the exercises. An agent inherits that without having chosen it,
+     * so it does not get the file at all - the exercise runs on its own defaults instead.
+     */
+    public function test_an_agent_session_does_not_get_the_environment_file(): void
+    {
+        $this->withSession('1', fn () => $this->withEnvironmentFile(
+            $this->root . '/.env',
+            "RIG_TEST_TOKEN=live-key\n",
+            function (): void {
+                $this->assertSame(0, $this->rig('--list', '--package=' . $this->root));
+                $this->assertFalse(getenv('RIG_TEST_TOKEN'));
+                $this->assertStringContainsString('Not loading', $this->written());
+            },
+        ));
+    }
+
+    public function test_an_agent_that_says_so_gets_the_environment_file(): void
+    {
+        $this->withSession('1', fn () => $this->withEnvironmentFile(
+            $this->root . '/.env',
+            "RIG_TEST_TOKEN=asked-for\n",
+            function (): void {
+                $this->assertSame(0, $this->rig('--list', '--package=' . $this->root, '--agent-may-load-env'));
+                $this->assertSame('asked-for', getenv('RIG_TEST_TOKEN'));
+            },
+        ));
+    }
+
+    /**
+     * Most packages have no environment file, and a warning about withholding one that was
+     * never there would be printed by every exercise an agent ever ran.
+     */
+    public function test_nothing_is_said_when_there_is_no_environment_file_to_withhold(): void
+    {
+        $this->withSession('1', function (): void {
+            $this->assertSame(0, $this->rig('--list', '--package=' . $this->root));
+            $this->assertStringNotContainsString('Not loading', $this->written());
+        });
     }
 }

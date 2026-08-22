@@ -51,7 +51,7 @@ class Runner
 
         $this->root = rtrim($root, '/');
 
-        Environment::load($this->environmentFile($arguments));
+        $this->loadEnvironment($arguments);
 
         $exercises = new Exercises($this->harnessDirectory($arguments));
         $name = $arguments->first();
@@ -157,6 +157,52 @@ class Runner
     }
 
     /**
+     * The environment file is the package's own, and it is written for the person who
+     * owns the credentials in it - so it says "deliver", because that is how they run
+     * the exercises. An agent inherits that decision without having made it, which is
+     * how a harness run for a look at some output sends real mail.
+     *
+     * So it is not loaded at all when the runner is an agent. The exercise still runs;
+     * it runs with the defaults its own code chooses, which is what a safe default is
+     * for and what a populated file quietly takes away. CLAUDECODE is a fact about who
+     * is running the command, which is the one thing a stale configuration cannot fake.
+     *
+     * This covers the file the rig loads and nothing else. An exercise that reads a
+     * credential by itself, or a key living in committed config, is untouched by it.
+     */
+    private function loadEnvironment(Arguments $arguments): void
+    {
+        $file = $this->environmentFile($arguments);
+
+        if (! $this->isAgentSession() || $arguments->has('agent-may-load-env')) {
+            Environment::load($file);
+
+            return;
+        }
+
+        if (! is_file($file)) {
+            return;
+        }
+
+        $this->io->warn('Not loading ' . $file . ' - this is an agent session.');
+        $this->io->line('  An exercise that now fails for want of a credential is this guard');
+        $this->io->line('  working, not a problem to solve. Ask rather than going to look for');
+        $this->io->line('  the key, and pass --agent-may-load-env only when you have been asked');
+        $this->io->line('  to do the real thing.');
+        $this->io->line();
+    }
+
+    /**
+     * Deliberately fails open on absence: no variable means the ordinary behaviour, never
+     * "assume human, proceed". If Claude Code ever renames this, the rename costs the
+     * guard rather than the safety, and the exercise's own opt-in still stands behind it.
+     */
+    private function isAgentSession(): bool
+    {
+        return getenv('CLAUDECODE') !== false;
+    }
+
+    /**
      * An absolute --env is taken as given, the same way --harness is. Concatenating one
      * onto the package produced a path that could not exist, and a missing environment
      * file is not an error - so the exercise ran with none of its credentials set and
@@ -222,6 +268,7 @@ class Runner
         $this->io->line('  --package=<path>              exercise a package somewhere else');
         $this->io->line('  --harness=<dir>               where the exercises are (default: harness)');
         $this->io->line('  --env=<file>                  environment file (default: .env)');
+        $this->io->line('  --agent-may-load-env          load it anyway in an agent session');
         $this->io->line('  --list                        list the exercises even when one is named');
         $this->io->line('  --version                     print the version');
         $this->io->line('  --help                        print this');

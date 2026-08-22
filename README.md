@@ -69,6 +69,7 @@ is autoloaded, so use it however a consumer would.
 | `--package=<path>` | exercise a package in another directory |
 | `--harness=<dir>` | where the exercises are; default `harness` |
 | `--env=<file>` | environment file to load; default `.env`, relative to the package unless absolute |
+| `--agent-may-load-env` | load it even in an agent session; see [Credentials](#credentials) |
 | `--list` | list exercises even when one is named |
 | `--version`, `--help` | |
 
@@ -87,6 +88,25 @@ editing it:
 ```bash
 WEBHOOK_URL=https://example.test/other vendor/bin/rig post
 ```
+
+### Agent sessions
+
+`rig` does not read the environment file when `CLAUDECODE` is set — the variable Claude
+Code exports into every shell it opens. It says so, and runs the exercise anyway, on
+whatever defaults the exercise's own code chooses.
+
+The file belongs to whoever owns the credentials in it, and it tends to say *do the real
+thing*, because that is how they run their own exercises. An agent asked to look at some
+output inherits that decision without having made it — which is how a harness comes to
+send real mail nobody asked for. Withholding the file is what lets an exercise's own safe
+default apply.
+
+`--agent-may-load-env` loads it regardless, for an agent that has been asked to do the
+real thing.
+
+This covers the file `rig` loads and nothing else. An exercise that reads a credential by
+itself, or a key committed to configuration, is untouched by it. With the variable absent
+nothing changes, so running exercises by hand behaves exactly as before.
 
 **Ignore environment files when you add `harness/`**, whether or not anything needs
 credentials yet. A harness that starts out driving pure code grows an API call eventually,
